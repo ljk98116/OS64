@@ -1,7 +1,7 @@
 # directory
 DIRECTORY = tools $(patsubst %,kernel/%,$(KDIRECTORY))
 
-KDIRECTORY = init trap console libs
+KDIRECTORY = init trap console libs debug mm
 
 KERNEL_DIRECTORY = $(patsubst %,kernel/%,$(KDIRECTORY))
 
@@ -48,12 +48,11 @@ KERN_SOBJ = $(KERN_S:.S=.o)
 SYSTEM = bin/system
 
 $(KERN_COBJ):%.o:%.c
-	@echo $(KERN_COBJ)
-	@echo compiling kernel C source code
+	@echo ****compiling kernel C source code****
 	$(CC) $(CFLAGS) -o $@ $<
 
 $(KERN_SOBJ):%.o:%.S
-	@echo compiling kernel GAS source code
+	@echo ****compiling kernel GAS source code****
 	$(CC) $(CFLAGS) -o $@ $<
 
 $(SYSTEM): $(TARGET_DIRECTORY) $(KERN_COBJ) $(KERN_SOBJ)

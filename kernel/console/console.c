@@ -12,23 +12,23 @@ static void init_cursor(){
     pointer.YRes = 900;
     pointer.XCharSize = 8;
     pointer.YCharSize = 16;
-    pointer.FB_addr = 0xffff800000a00000;
+    pointer.FB_addr = (uint32_t*)0xffff800000a00000;
     pointer.FB_len = pointer.XRes * pointer.YRes * 4;
 }
 //Y X
 static uint8_t font[56][180];
 
 //get font information from vga
-static uint8_t getchar(const int x,const int y){
+static uint8_t getchar(int x,int y){
     return font[y][x];
 }
 
 static void putchar
 (   
-    const uint32_t *fb,const int XSize,
-    const int x,const int y,
+    uint32_t *fb,int XSize,
+    int x,int y,
     uint32_t back,uint32_t fore,
-    const uint8_t font
+    uint8_t font
 )
 {
     uint32_t *addr = NULL;

@@ -1,5 +1,9 @@
 #include <console.h>
 #include <tstdio.h>
+#include <debug.h>
+#include <tstdio.h>
+#include <trap.h>
+#include <gdt.h>
 
 static void TestPrintFrame();
 
@@ -9,6 +13,10 @@ void Start_Kernel(){
     console_clear();
     printk("hello os kernel %d\n",1);
     printk_color(BLACK,BLUE,"hello os kernel %d\n",2);
+    init_gdt();
+    init_alltrap();
+    print_cur_status();
+    int i = 1/0;
     while(1);
 }
 

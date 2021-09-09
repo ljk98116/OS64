@@ -1,4 +1,5 @@
 #include <debug.h>
+#include <tstdio.h>
 
 static void print_stack_trace();
 
@@ -27,6 +28,11 @@ void panic(const char* msg){
     printk("*** thomas is in panic: %s ***\n", msg);
     print_stack_trace();
 	//loops
+	while(1);
+}
+
+void panic_normal(){
+	printk("*** thomas is in panic: unhandled err ***\n");
 	while(1);
 }
 

@@ -3,4 +3,5 @@
     #include <defs.h>
     void print_cur_status();
     void panic(const char *msg); //to do
+    void panic_normal();
 #endif

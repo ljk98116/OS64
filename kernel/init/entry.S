@@ -14,9 +14,6 @@ _start:
 //=======	load GDTR
 
 	lgdt	GDT_POINTER(%rip)
-
-//=======	load	IDTR
-
 	lidt	IDT_POINTER(%rip)
 
 	mov	$0x10,	%ax
@@ -102,6 +99,7 @@ __PDE:
 .section .data
 
 .globl GDT_Table
+.globl GDT_POINTER
 
 GDT_Table:
 	.quad	0x0000000000000000			/*0	NULL descriptor		       	00*/
@@ -121,6 +119,7 @@ GDT_BASE:	.quad	GDT_Table
 //=======	IDT_Table
 
 .globl IDT_Table
+.globl IDT_POINTER
 
 IDT_Table:
 	.fill  512,8,0
@@ -133,6 +132,7 @@ IDT_BASE:	.quad	IDT_Table
 //=======	TSS64_Table
 
 .globl	TSS64_Table
+.globl	TSS64_LIMIT
 
 TSS64_Table:
 	.fill  13,8,0
