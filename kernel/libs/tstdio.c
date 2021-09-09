@@ -15,7 +15,7 @@ __asm__("divl %4":"=a" (n),"=d" (__res):"0" (n),"1" (0),"r" (base)); \
 __res; })
 
 static char * number(char * str, int num, int base, int size, int precision,int type){
-	char c,sign,tmp[36];
+	char c,sign,tmp[50];
 	const char *digits="0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ";
 	int i;
 
@@ -72,7 +72,7 @@ static int getnum(const char** s){
     int ret = 0;
     while(isdigit(**s)){
         //attention here !!!!,not(*(*s++)),*s plus 1,not s plus 1
-        ret = ret*10 +(*(*s)++) - '0';
+        ret = ret*10 + *((*s)++) - '0';
     }
     return ret;
 }
@@ -82,7 +82,6 @@ int print(const char* fmt,char* buf,va_list arg){
 	int i;
 	char * str;
 	char *s;
-	int *ip;
 
 	int flags;		/* flags to number() */
 
@@ -90,7 +89,9 @@ int print(const char* fmt,char* buf,va_list arg){
 	int precision;		/* min. # of digits for integers; max
 				   number of chars for from string */
 
-	for (str=buf ; *fmt ; ++fmt) {
+	int qualifier;
+
+	for (str=buf ; *fmt ; fmt++) {
 		if (*fmt != '%') {
 			*str++ = *fmt;
 			continue;
@@ -99,7 +100,7 @@ int print(const char* fmt,char* buf,va_list arg){
 		/* process flags */
 		flags = 0;
 		repeat:
-			++fmt;		/* this also skips first '%' */
+			fmt++;		/* this also skips first '%' */
 			switch (*fmt) {
 				case '-': flags |= LEFT; goto repeat;
 				case '+': flags |= PLUS; goto repeat;
@@ -124,7 +125,7 @@ int print(const char* fmt,char* buf,va_list arg){
 		/* get the precision */
 		precision = -1;
 		if (*fmt == '.') {
-			++fmt;	
+			fmt++;	
 			if (isdigit(*fmt))
 				precision = getnum(&fmt);
 			else if (*fmt == '*') {
@@ -135,6 +136,12 @@ int print(const char* fmt,char* buf,va_list arg){
 				precision = 0;
 		}
 
+		qualifier = -1;
+		if(*fmt == 'h' || *fmt == 'l' || *fmt == 'L' || *fmt == 'Z')
+		{	
+			qualifier = *fmt;
+			fmt++;
+		}
 		switch (*fmt) {
 		case 'c':
 			if (!(flags & LEFT))
@@ -163,13 +170,15 @@ int print(const char* fmt,char* buf,va_list arg){
 			break;
 
 		case 'o':
-			str = number(str, va_arg(arg, unsigned long), 8,
-				field_width, precision, flags);
+			if(qualifier == 'l')
+				str = number(str, va_arg(arg, unsigned long), 8,field_width, precision, flags);
+			else
+				str = number(str, va_arg(arg, unsigned int), 8,field_width, precision, flags);
 			break;
 
 		case 'p':
 			if (field_width == -1) {
-				field_width = 8;
+				field_width = 2 *sizeof(void*);
 				flags |= ZEROPAD;
 			}
 			str = number(str,
@@ -180,16 +189,20 @@ int print(const char* fmt,char* buf,va_list arg){
 		case 'x':
 			flags |= SMALL;
 		case 'X':
-			str = number(str, va_arg(arg, unsigned long), 16,
-				field_width, precision, flags);
+			if(qualifier == 'l')
+				str = number(str, va_arg(arg, unsigned long), 16,field_width, precision, flags);
+			else
+				str = number(str, va_arg(arg, unsigned int), 16,field_width, precision, flags);
 			break;
 
 		case 'd':
 		case 'i':
 			flags |= SIGN;
 		case 'u':
-			str = number(str, va_arg(arg, unsigned long), 10,
-				field_width, precision, flags);
+			if(qualifier == 'l')
+				str = number(str, va_arg(arg, unsigned long), 10,field_width, precision, flags);
+			else
+				str = number(str, va_arg(arg, unsigned int), 10,field_width, precision, flags);
 			break;
 		case 'b':
 			str = number(str, va_arg(arg, unsigned long), 2,
@@ -197,17 +210,24 @@ int print(const char* fmt,char* buf,va_list arg){
 			break;
 
 		case 'n':
-			ip = va_arg(arg, int *);
-			*ip = (str - buf);
+			if(qualifier == 'l'){
+				long *ip = va_arg(arg,long*);
+				*ip = str - buf;
+			}
+			else{
+				int *ip = va_arg(arg,int*);
+				*ip = str - buf;
+			}
 			break;
-
+		case '%':
+			*str++ = '%';
+			break;
 		default:
-			if (*fmt != '%')
-				*str++ = '%';
-			if (*fmt)
+			*str++ = '%';
+			if(*fmt)
 				*str++ = *fmt;
 			else
-				--fmt;
+				fmt--;
 			break;
 		}
 	}
