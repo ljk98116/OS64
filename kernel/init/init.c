@@ -4,6 +4,10 @@
 #include <tstdio.h>
 #include <trap.h>
 #include <gdt.h>
+#include <pmm.h>
+
+//mm struct
+struct Global_Mem_Desc mm_struct = {{0},0};
 
 static void TestPrintFrame();
 
@@ -16,7 +20,7 @@ void Start_Kernel(){
     init_gdt();
     init_alltrap();
     print_cur_status();
-    int i = 1/0;
+    probe_memory();
     while(1);
 }
 
