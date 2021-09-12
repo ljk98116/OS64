@@ -13,8 +13,8 @@
         uint32_t always0;
     }__attribute__((packed))tss_descriptor_t;
 
-    void SetTSS64(unsigned long rsp0,unsigned long rsp1,unsigned long rsp2,
-    unsigned long ist1,unsigned long ist2,unsigned long ist3,unsigned long ist4,
-    unsigned long ist5,unsigned long ist6,unsigned long ist7);
+    void SetTSS64(uint64_t rsp0,uint64_t rsp1,uint64_t rsp2,
+    uint64_t ist1,uint64_t ist2,uint64_t ist3,uint64_t ist4,
+    uint64_t ist5,uint64_t ist6,uint64_t ist7);
     void init_gdt();
 #endif

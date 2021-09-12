@@ -15,7 +15,7 @@ $(TARGET_DIRECTORY):$(DIRECTORY)
 
 # compile options
 CC = gcc
-CFLAGS = -nostdinc -fno-stack-protector -mcmodel=large -fno-builtin -m64 -c $(INCLUDE) 
+CFLAGS = -nostdinc -fno-stack-protector -mcmodel=large -fno-builtin -m64 -c $(INCLUDE) -Os
 
 LD = ld
 LDFLAGS = -b elf64-x86-64 -nostdlib

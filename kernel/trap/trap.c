@@ -3,100 +3,100 @@
 #include <tstdio.h>
 
 //trap handles
-void do_divide_error(unsigned long rsp, unsigned long error_code)
+void do_divide_error(uint64_t rsp, uint64_t error_code)
 {
-    unsigned long* p = NULL;
-    p = (unsigned long* )(rsp + 0x98);
+    uint64_t* p = NULL;
+    p = (uint64_t* )(rsp + 0x98);
     printk_color(BLACK, RED, "do_divide_error(0),ERR_CODE:0x%08x%08x,RSP:0x%08x%08x,RIP:0x%08x%08x\n", error_code >> 32,error_code, rsp >> 32,rsp,(*p+0xffff800000000000) >> 32, (*p+0xffff800000000000));
     while (1)
         ;
 }
 
-void do_debug_error(unsigned long rsp, unsigned long error_code)
+void do_debug_error(uint64_t rsp, uint64_t error_code)
 {
-    unsigned long* p = NULL;
-    p = (unsigned long* )(rsp + 0x98);
+    uint64_t* p = NULL;
+    p = (uint64_t* )(rsp + 0x98);
     printk_color(BLACK, RED, "do_debug_error(1),ERR_CODE:0x%08x%08x,RSP:0x%08x%08x,RIP:0x%08x%08x\n", error_code >> 32,error_code, rsp >> 32,rsp,(*p+0xffff800000000000) >> 32, (*p+0xffff800000000000));
     while (1)
         ;
 }
 
-void do_nmi(unsigned long rsp, unsigned long error_code)
+void do_nmi(uint64_t rsp, uint64_t error_code)
 {
-    unsigned long* p = NULL;
-    p = (unsigned long* )(rsp + 0x98);
+    uint64_t* p = NULL;
+    p = (uint64_t* )(rsp + 0x98);
     printk_color(BLACK, RED, "do_nmi(2),ERR_CODE:0x%08x%08x,RSP:0x%08x%08x,RIP:0x%08x%08x\n", error_code >> 32,error_code, rsp >> 32,rsp,(*p+0xffff800000000000) >> 32, (*p+0xffff800000000000));
     while (1)
         ;
 }
 
-void do_int3(unsigned long rsp, unsigned long error_code)
+void do_int3(uint64_t rsp, uint64_t error_code)
 {
-    unsigned long* p = NULL;
-    p = (unsigned long* )(rsp + 0x98);
+    uint64_t* p = NULL;
+    p = (uint64_t* )(rsp + 0x98);
     printk_color(BLACK, RED, "do_int3(3),ERR_CODE:0x%08x%08x,RSP:0x%08x%08x,RIP:0x%08x%08x\n", error_code >> 32,error_code, rsp >> 32,rsp,(*p+0xffff800000000000) >> 32, (*p+0xffff800000000000));
     while (1)
         ;
 }
 
-void do_overflow(unsigned long rsp, unsigned long error_code)
+void do_overflow(uint64_t rsp, uint64_t error_code)
 {
-    unsigned long* p = NULL;
-    p = (unsigned long* )(rsp + 0x98);
+    uint64_t* p = NULL;
+    p = (uint64_t* )(rsp + 0x98);
     printk_color(BLACK, RED, "do_overflow(4),ERR_CODE:0x%08x%08x,RSP:0x%08x%08x,RIP:0x%08x%08x\n", error_code >> 32,error_code, rsp >> 32,rsp,(*p+0xffff800000000000) >> 32, (*p+0xffff800000000000));
     while (1)
         ;
 }
 
-void do_bounds(unsigned long rsp, unsigned long error_code)
+void do_bounds(uint64_t rsp, uint64_t error_code)
 {
-    unsigned long* p = NULL;
-    p = (unsigned long* )(rsp + 0x98);
+    uint64_t* p = NULL;
+    p = (uint64_t* )(rsp + 0x98);
     printk_color(BLACK, RED, "do_bounds(5),ERR_CODE:0x%08x%08x,RSP:0x%08x%08x,RIP:0x%08x%08x\n", error_code >> 32,error_code, rsp >> 32,rsp,(*p+0xffff800000000000) >> 32, (*p+0xffff800000000000));
     while (1)
         ;
 }
 
-void do_undefined_opcode(unsigned long rsp, unsigned long error_code)
+void do_undefined_opcode(uint64_t rsp, uint64_t error_code)
 {
-    unsigned long* p = NULL;
-    p = (unsigned long* )(rsp + 0x98);
+    uint64_t* p = NULL;
+    p = (uint64_t* )(rsp + 0x98);
     printk_color(BLACK, RED, "do_undefined_opcode(6),ERR_CODE:0x%08x%08x,RSP:0x%08x%08x,RIP:0x%08x%08x\n", error_code >> 32,error_code, rsp >> 32,rsp,(*p+0xffff800000000000) >> 32, (*p+0xffff800000000000));
     while (1)
         ;
 }
 
-void do_dev_not_available(unsigned long rsp, unsigned long error_code)
+void do_dev_not_available(uint64_t rsp, uint64_t error_code)
 {
-    unsigned long* p = NULL;
-    p = (unsigned long* )(rsp + 0x98);
+    uint64_t* p = NULL;
+    p = (uint64_t* )(rsp + 0x98);
     printk_color(BLACK, RED, "do_dev_not_available(7),ERR_CODE:0x%08x%08x,RSP:0x%08x%08x,RIP:0x%08x%08x\n", error_code >> 32,error_code, rsp >> 32,rsp,(*p+0xffff800000000000) >> 32, (*p+0xffff800000000000));
     while (1)
         ;
 }
 
-void do_double_fault(unsigned long rsp, unsigned long error_code)
+void do_double_fault(uint64_t rsp, uint64_t error_code)
 {
-    unsigned long* p = NULL;
-    p = (unsigned long* )(rsp + 0x98);
+    uint64_t* p = NULL;
+    p = (uint64_t* )(rsp + 0x98);
     printk_color(BLACK, RED, "do_double_fault(8),ERR_CODE:0x%08x%08x,RSP:0x%08x%08x,RIP:0x%08x%08x\n", error_code >> 32,error_code, rsp >> 32,rsp,(*p+0xffff800000000000) >> 32, (*p+0xffff800000000000));
     while (1)
         ;
 }
 
-void do_coprocessor_segment_overrun(unsigned long rsp, unsigned long error_code)
+void do_coprocessor_segment_overrun(uint64_t rsp, uint64_t error_code)
 {
-    unsigned long* p = NULL;
-    p = (unsigned long* )(rsp + 0x98);
+    uint64_t* p = NULL;
+    p = (uint64_t* )(rsp + 0x98);
     printk_color(BLACK, RED, "do_coprocessor_segment_overrun(9),ERR_CODE:0x%08x%08x,RSP:0x%08x%08x,RIP:0x%08x%08x\n",error_code >> 32,error_code, rsp >> 32,rsp,(*p+0xffff800000000000) >> 32, (*p+0xffff800000000000));
     while (1)
         ;
 }
 
-void do_invalid_TSS(unsigned long rsp, unsigned long error_code)
+void do_invalid_TSS(uint64_t rsp, uint64_t error_code)
 {
-    unsigned long* p = NULL;
-    p = (unsigned long* )(rsp + 0x98);
+    uint64_t* p = NULL;
+    p = (uint64_t* )(rsp + 0x98);
     printk_color(BLACK, RED, "do_invalid_TSS(10),ERR_CODE:0x%08x%08x,RSP:0x%08x%08x,RIP:0x%08x%08x\n", error_code >> 32,error_code, rsp >> 32,rsp,(*p+0xffff800000000000) >> 32, (*p+0xffff800000000000));
 
     if (error_code & 0X01)
@@ -117,40 +117,40 @@ void do_invalid_TSS(unsigned long rsp, unsigned long error_code)
         ;
 }
 
-void do_segment_not_present(unsigned long rsp, unsigned long error_code)
+void do_segment_not_present(uint64_t rsp, uint64_t error_code)
 {
-    unsigned long* p = NULL;
-    p = (unsigned long* )(rsp + 0x98);
+    uint64_t* p = NULL;
+    p = (uint64_t* )(rsp + 0x98);
     printk_color(BLACK, RED, "do_segment_not_present(11),ERR_CODE:0x%08x%08x,RSP:0x%08x%08x,RIP:0x%08x%08x\n", error_code >> 32,error_code, rsp >> 32,rsp,(*p+0xffff800000000000) >> 32, (*p+0xffff800000000000));
     while (1)
         ;
 }
 
-void do_stack_segment_fault(unsigned long rsp, unsigned long error_code)
+void do_stack_segment_fault(uint64_t rsp, uint64_t error_code)
 {
-    unsigned long* p = NULL;
-    p = (unsigned long* )(rsp + 0x98);
+    uint64_t* p = NULL;
+    p = (uint64_t* )(rsp + 0x98);
     printk_color(BLACK, RED, "do_stack_segment_fault(12),ERR_CODE:0x%08x%08x,RSP:0x%08x%08x,RIP:0x%08x%08x\n", error_code >> 32,error_code, rsp >> 32,rsp,(*p+0xffff800000000000) >> 32, (*p+0xffff800000000000));
     while (1)
         ;
 }
 
-void do_general_protection(unsigned long rsp, unsigned long error_code)
+void do_general_protection(uint64_t rsp, uint64_t error_code)
 {
-    unsigned long* p = NULL;
-    p = (unsigned long* )(rsp + 0x98);
+    uint64_t* p = NULL;
+    p = (uint64_t* )(rsp + 0x98);
     printk_color(BLACK, RED, "do_general_protection(13),ERR_CODE:0x%08x%08x,RSP:0x%08x%08x,RIP:0x%08x%08x\n", error_code >> 32,error_code, rsp >> 32,rsp,(*p+0xffff800000000000) >> 32, (*p+0xffff800000000000));
     while (1)
         ;
 }
 
-void do_page_fault(unsigned long rsp, unsigned long error_code)
+void do_page_fault(uint64_t rsp, uint64_t error_code)
 {
-    unsigned long* p = NULL;
-    p = (unsigned long* )(rsp + 0x98);
+    uint64_t* p = NULL;
+    p = (uint64_t* )(rsp + 0x98);
     printk_color(BLACK, RED, "do_page_fault(14),ERR_CODE:0x%08x%08x,RSP:0x%08x%08x,RIP:0x%08x%08x\n", error_code >> 32,error_code, rsp >> 32,rsp,(*p+0xffff800000000000) >> 32, (*p+0xffff800000000000));
 
-    unsigned long cr2 = 0;
+    uint64_t cr2 = 0;
     asm volatile("movq %%cr2,%0"
                  : "=r"(cr2)::"memory");
 
@@ -177,46 +177,46 @@ void do_page_fault(unsigned long rsp, unsigned long error_code)
         ;
 }
 
-void do_x87_FPU_error(unsigned long rsp, unsigned long error_code)
+void do_x87_FPU_error(uint64_t rsp, uint64_t error_code)
 {
-    unsigned long* p = NULL;
-    p = (unsigned long* )(rsp + 0x98);
+    uint64_t* p = NULL;
+    p = (uint64_t* )(rsp + 0x98);
     printk_color(BLACK, RED, "do_x87_FPU_err(16),ERR_CODE:0x%08x%08x,RSP:0x%08x%08x,RIP:0x%08x%08x\n", error_code >> 32,error_code, rsp >> 32,rsp,(*p+0xffff800000000000) >> 32, (*p+0xffff800000000000));
     while (1)
         ;
 }
 
-void do_alignment_check(unsigned long rsp, unsigned long error_code)
+void do_alignment_check(uint64_t rsp, uint64_t error_code)
 {
-    unsigned long* p = NULL;
-    p = (unsigned long* )(rsp + 0x98);
+    uint64_t* p = NULL;
+    p = (uint64_t* )(rsp + 0x98);
     printk_color(BLACK, RED, "do_alignment_check(17),ERR_CODE:0x%08x%08x,RSP:0x%08x%08x,RIP:0x%08x%08x\n", error_code >> 32,error_code, rsp >> 32,rsp,(*p+0xffff800000000000) >> 32, (*p+0xffff800000000000));
     while (1)
         ;
 }
 
-void do_machine_check(unsigned long rsp, unsigned long error_code)
+void do_machine_check(uint64_t rsp, uint64_t error_code)
 {
-    unsigned long* p = NULL;
-    p = (unsigned long* )(rsp + 0x98);
+    uint64_t* p = NULL;
+    p = (uint64_t* )(rsp + 0x98);
     printk_color(BLACK, RED, "do_machine_check(18),ERR_CODE:0x%08x%08x,RSP:0x%08x%08x,RIP:0x%08x%08x\n", error_code >> 32,error_code, rsp >> 32,rsp,(*p+0xffff800000000000) >> 32, (*p+0xffff800000000000));
     while (1)
         ;
 }
 
-void do_SIMD_exception(unsigned long rsp, unsigned long error_code)
+void do_SIMD_exception(uint64_t rsp, uint64_t error_code)
 {
-    unsigned long* p = NULL;
-    p = (unsigned long* )(rsp + 0x98);
+    uint64_t* p = NULL;
+    p = (uint64_t* )(rsp + 0x98);
     printk_color(BLACK, RED, "do_SIMD_exception(19),ERR_CODE:0x%08x%08x,RSP:0x%08x%08x,RIP:0x%08x%08x\n", error_code >> 32,error_code, rsp >> 32,rsp,(*p+0xffff800000000000) >> 32, (*p+0xffff800000000000));
     while (1)
         ;
 }
 
-void do_virtualization_exception(unsigned long rsp, unsigned long error_code)
+void do_virtualization_exception(uint64_t rsp, uint64_t error_code)
 {
-    unsigned long* p = NULL;
-    p = (unsigned long* )(rsp + 0x98);
+    uint64_t* p = NULL;
+    p = (uint64_t* )(rsp + 0x98);
     printk_color(BLACK, RED, "do_virtualization_exception(20),ERR_CODE:0x%08x%08x,RSP:0x%08x%08x,RIP:0x%08x%08x\n", error_code >> 32,error_code, rsp >> 32,rsp,(*p+0xffff800000000000) >> 32, (*p+0xffff800000000000));
     while (1)
         ;

@@ -20,7 +20,7 @@ void Start_Kernel(){
     init_gdt();
     init_alltrap();
     print_cur_status();
-    probe_memory();
+    init_pmm();
     while(1);
 }
 

@@ -25,22 +25,22 @@ static void init_tss_descriptor(){
 }
 
 void SetTSS64(
-unsigned long rsp0,unsigned long rsp1,unsigned long rsp2,
-unsigned long ist1,unsigned long ist2,unsigned long ist3,unsigned long ist4,
-unsigned long ist5,unsigned long ist6,unsigned long ist7)
+uint64_t rsp0,uint64_t rsp1,uint64_t rsp2,
+uint64_t ist1,uint64_t ist2,uint64_t ist3,uint64_t ist4,
+uint64_t ist5,uint64_t ist6,uint64_t ist7)
 {
     uint32_t *p = (uint32_t*)TSS64_Table;
-    *(unsigned long*)(p + 1) = rsp0;
-    *(unsigned long*)(p + 3) = rsp1;
-    *(unsigned long*)(p + 5) = rsp2;
+    *(uint64_t*)(p + 1) = rsp0;
+    *(uint64_t*)(p + 3) = rsp1;
+    *(uint64_t*)(p + 5) = rsp2;
 
-    *(unsigned long*)(p + 9) = ist1;
-    *(unsigned long*)(p + 11) = ist2;
-    *(unsigned long*)(p + 13) = ist3;
-    *(unsigned long*)(p + 15) = ist4;
-    *(unsigned long*)(p + 17) = ist5;
-    *(unsigned long*)(p + 19) = ist6;
-    *(unsigned long*)(p + 21) = ist7;
+    *(uint64_t*)(p + 9) = ist1;
+    *(uint64_t*)(p + 11) = ist2;
+    *(uint64_t*)(p + 13) = ist3;
+    *(uint64_t*)(p + 15) = ist4;
+    *(uint64_t*)(p + 17) = ist5;
+    *(uint64_t*)(p + 19) = ist6;
+    *(uint64_t*)(p + 21) = ist7;
 }
 
 void init_gdt(){
