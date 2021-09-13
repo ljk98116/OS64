@@ -1,6 +1,9 @@
 #include <pmm.h>
 #include <tstdio.h>
 
+//global cr3 pointer
+uint64_t* global_cr3 = 0;
+
 //external GMD struct
 extern struct Global_Mem_Desc mm_struct;
 
@@ -14,6 +17,20 @@ static uint64_t TotalMem_Valid = 0;
 static int ZONE_DMA_INDEX = 0;
 static int ZONE_NORMAL_INDEX = 0;
 static int ZONE_UNMAPPED_INDEX = 0;
+
+static inline uint64_t* GetCR3(){
+    uint64_t *tmp;
+    asm volatile("movq %%cr3,%0\n"
+                :"=r"(tmp)::"memory");
+    return tmp;
+}
+
+static inline void TLB_flush(){
+    uint64_t *tmp;
+    asm volatile("movq %%cr3,%0\n"
+                 "movq %0,%%cr3\n"
+                :"=r"(tmp)::"memory");    
+}
 
 static void probe_memory(){
     uint64_t TotalMem = 0;
@@ -99,7 +116,7 @@ static void zone_init(struct Zone **z,uint64_t start,uint64_t end){
 }
 
 static void page_init(struct Zone* z,struct Page *p,uint64_t start,uint64_t end,uint64_t page_num){
-    for(int i=0;i<page_num;i++){
+    for(int i=0;i<page_num;i++,p++){
         p->zone_struct = z;
         p->page_age = 0;
         p->phy_addr = start + PAGE_2M_SIZE * i;
@@ -127,6 +144,28 @@ static void print_gmd(){
     mm_struct.zones_size >> 32,mm_struct.zones_size,
     mm_struct.zones_len >> 32,mm_struct.zones_len
     );    
+}
+
+static unsigned long pgitem_init(struct Page *page,unsigned long flags){
+    if(!page->page_attr){
+        *(mm_struct.bitsmap + (page->phy_addr >> PAGE_2M_SHIFT >> 6)) |= 1UL << (page->phy_addr >> PAGE_2M_SHIFT) % 64;
+        page->page_attr = flags;
+        page->page_ref++;
+        page->zone_struct->page_use_num++;
+        page->zone_struct->page_free_num--;
+        page->zone_struct->total_page_ref++;
+    }
+    else if((page->page_attr & PG_Referenced) || (page->page_attr & PG_K_Share_To_U) || 
+    (flags & PG_Referenced) || (flags & PG_K_Share_To_U)){
+        page->page_attr |= flags;
+        page->page_ref++;
+        page->zone_struct->total_page_ref++;
+    }
+    else{
+        *(mm_struct.bitsmap + (page->phy_addr >> PAGE_2M_SHIFT >> 6)) |= 1UL << (page->phy_addr >> PAGE_2M_SHIFT) % 64;
+        page->page_attr |= flags;
+    }
+    return 0;
 }
 
 static void init_gmd(){
@@ -161,7 +200,6 @@ static void init_gmd(){
     ZONE_NORMAL_INDEX = 0;
     for(int i=0;i<mm_struct.zones_len;i++){
         struct Zone *z = mm_struct.zones_struct + i;
-        printk("%#018lx\n",mm_struct.zones_struct);
         printk_color(BLACK,ORANGE,"zone_start_addr:%#018lx,zone_end_addr:%#018lx,pages_group:%#018lx,pages_len:%#018lx\n",
         z->zone_start_addr,z->zone_end_addr,z->page_struct,z->page_num
         );
@@ -171,7 +209,80 @@ static void init_gmd(){
     }
     //use a blank to seperate mm_struct
     mm_struct.end_of_gmd = (uint64_t)((uint64_t)mm_struct.zones_struct + mm_struct.zones_size + sizeof(long)*32) & (~(sizeof(long) -1));
-    //printk_color(BLACK,ORANGE,"");
+    //print kernel info
+    printk_color(BLACK,ORANGE,"start_code:%#018lx,end_code:%#018lx,end_data:%#018lx,end_brk:%#018lx,end_of_struct:%#018lx\n",
+    mm_struct.start_kcode,mm_struct.end_kcode,mm_struct.end_kdata,mm_struct.end_kbrk,mm_struct.end_of_gmd);
+    //init pages
+    uint64_t pages_total = V2P(mm_struct.end_of_gmd) >> PAGE_2M_SHIFT;
+    //printk("end_of_gmd:%#018lx,pages_total:%#018lx\n",V2P(mm_struct.end_of_gmd),pages_total);
+    for(uint64_t i=0;i<= pages_total;i++){
+        pgitem_init(mm_struct.pages_struct + i,PG_PTable_Maped | PG_Kernel_Init | PG_Active | PG_Kernel);
+    }
+    //cr3
+    global_cr3 = GetCR3();
+    printk_color(BLACK,INDIGO,"Global CR3:%#018lx\n",global_cr3);
+    printk_color(BLACK,INDIGO,"*Global CR3:%#018lx\n",*(uint64_t*)P2V((uint64_t)global_cr3) & (~0xff));
+    printk_color(BLACK,INDIGO,"**Global CR3:%#018lx\n",*(uint64_t*)P2V(*(uint64_t*)P2V((uint64_t)global_cr3) & (~0xff)) & (~0xff));
+    
+    for(int i=0;i<10;i++){
+        *(uint64_t*)P2V((uint64_t)global_cr3 + i) = 0UL;
+    }
+    TLB_flush();
+}
+
+struct Page* alloc_pages(int zone_sel,int number,uint64_t flags){
+    int start_idx = 0;
+    int end_idx = 0;
+
+    switch(zone_sel){
+        case ZONE_DMA:
+            start_idx = 0;
+            end_idx = ZONE_DMA_INDEX;
+            break;
+        case ZONE_NORMAL:
+            start_idx = ZONE_DMA_INDEX;
+            end_idx = ZONE_NORMAL_INDEX;
+            break;
+        case ZONE_UNMAPPED:
+            start_idx = ZONE_UNMAPPED_INDEX;
+            end_idx = mm_struct.zones_len - 1;
+            break;
+        default:
+            printk("Not Present\n");
+            break;
+    }
+
+    //printk("%#018lx,%#018lx\n",start_idx,end_idx);
+    for(uint64_t i=start_idx;i<=end_idx;i++){
+        struct Zone* z;
+        if((mm_struct.zones_struct +i)->page_free_num < number) continue;
+
+        z = mm_struct.zones_struct + i;
+
+        uint64_t page_start_idx,page_end_idx,page_num;
+        page_start_idx = z->zone_start_addr >> PAGE_2M_SHIFT;
+        page_end_idx = z->zone_end_addr >> PAGE_2M_SHIFT;
+        page_num = z->zone_len >> PAGE_2M_SHIFT;
+
+        //bitsmap 64 bits align
+        uint64_t tmp = 64 - page_start_idx % 64;
+        for(uint64_t j=page_start_idx;j<=page_end_idx;j += j % 64 ? tmp:64){
+            uint64_t *p = mm_struct.bitsmap + (j >> 6);
+            uint64_t shift = j % 64;
+            for(uint64_t k=shift ; k< 64-shift;k++){
+                uint64_t current64_bitmap = (*p >> k) | (*(p+1) << (64-k));
+                if(!(current64_bitmap & (number == 64 ? 0xffffffffffffffff :(1UL << number) -1))){
+                    uint64_t page = j+k-1;
+                    for(uint64_t l=0;l<number;l++){
+                        struct Page *x = mm_struct.pages_struct + page + l;
+                        pgitem_init(x,flags);
+                    }
+                    return (struct Page*)(mm_struct.pages_struct + page);
+                }
+            }
+        }
+    }
+    return NULL;
 }
 
 void init_pmm(){

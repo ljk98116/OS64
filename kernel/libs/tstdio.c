@@ -1,7 +1,5 @@
 #include <tstdio.h>
 
-char buf[1024];
-
 uint32_t strnlen(const char * s, uint32_t count)
 {
 	const char *sc;
@@ -299,6 +297,7 @@ int sprintf(char * buf, const char *fmt, ...)
 }
 
 void printk(const char* format,...){
+	char buf[1024];
     va_list arg;
     va_start(arg,format);
     int len = vsprintf(buf,format,arg);
@@ -308,6 +307,7 @@ void printk(const char* format,...){
 }
 
 void printk_color(uint32_t back,uint32_t fore,const char* format,...){
+	char buf[1024];
     va_list arg;
     va_start(arg,format);
     int len = vsprintf(buf,format,arg);

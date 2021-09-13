@@ -18,7 +18,7 @@ CC = gcc
 CFLAGS = -nostdinc -fno-stack-protector -mcmodel=large -fno-builtin -m64 -c $(INCLUDE) -Os
 
 LD = ld
-LDFLAGS = -b elf64-x86-64 -nostdlib
+LDFLAGS = -b elf64-x86-64
 
 OBJDUMP = objdump
 OBJCOPY = objcopy
@@ -53,10 +53,10 @@ $(KERN_COBJ):%.o:%.c
 
 $(KERN_SOBJ):%.o:%.S
 	@echo ****compiling kernel GAS source code****
-	$(CC) $(CFLAGS) -o $@ $<
+	as --64 -o $@ $<
 
 $(SYSTEM): $(TARGET_DIRECTORY) $(KERN_COBJ) $(KERN_SOBJ)
-	$(LD) $(LDFLAGS) -T tools/kernel.lds -o $@ $(KERN_COBJ) $(KERN_SOBJ)
+	$(LD) $(LDFLAGS) -T tools/kernel.lds -o $@ $(KERN_SOBJ) $(KERN_COBJ) 
 	$(OBJCOPY) -I elf64-x86-64 -S -R ".eh_frame" -R ".comment" -O binary $@ $(KERNEL)
 
 OBJ = $(shell find $(KERNEL_DIRECTORY) -name "*.o")

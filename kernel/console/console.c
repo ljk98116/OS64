@@ -62,11 +62,11 @@ static void scroll_down(){
             *(pointer.FB_addr + i) = *(pointer.FB_addr + i + pointer.XRes * pointer.YCharSize);
         }
         for(int i=0;i< max_line - 1;i++){
-            for(int j=0;j<pointer.XRes;j++){
+            for(int j=0;j<pointer.XRes / pointer.XCharSize;j++){
                 font[i][j] = font[i+1][j];
             }
         }
-        for(int j=0;j<pointer.XRes;j++) font[max_line-1][j] = ' ';
+        for(int j=0;j<pointer.XRes / pointer.XCharSize;j++) font[max_line-1][j] = ' ';
         
         //the last font line fills ' '
         for(int i = 0;i<pointer.XRes / pointer.XCharSize;i++){

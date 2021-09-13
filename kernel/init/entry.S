@@ -53,7 +53,7 @@ entry64:
 	lretq
 
 go_to_kernel:
-	.quad	Start_Kernel
+	.quad kern_main
 
 //=======	init page
 .align 8

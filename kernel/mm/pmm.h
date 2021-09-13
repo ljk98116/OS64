@@ -36,7 +36,7 @@
 
     //8 bytes 
     #define NUMPTE 512 //pte number in 1 page
-    #define PAGE_OFFFSET ((uint64_t)0xffff800000000000)
+    #define PAGE_OFFSET ((uint64_t)0xffff800000000000)
 
     #define PAGE_GDT_SHIFT 39
     #define PAGE_1G_SHIFT 30
@@ -52,8 +52,8 @@
     #define PAGE_2M_ALIGN(addr) (((uint64_t)(addr) + PAGE_2M_SIZE -1) & PAGE_2M_MASK)
     #define PAGE_4K_ALIGN(addr) (((uint64_t)(addr) + PAGE_4K_SIZE -1) & PAGE_4K_MASK)
 
-    #define V2P(addr) ((uint64_t)(addr) - PAGE_OFFSET)
-    #define P2V(addr) ((uint64_t)(addr) + PAGE_OFFSET)
+    #define V2P(addr) ((addr) - (PAGE_OFFSET))
+    #define P2V(addr) ((addr) + (PAGE_OFFSET))
 
     //page struct
     struct Page{
@@ -85,9 +85,25 @@
     //Zone attrs
     #define ZONE_DMA  (1<<0)
     #define ZONE_NORMAL (1 << 1)
-    #define ZONE_UNMAPED (1 << 2)
+    #define ZONE_UNMAPPED (1 << 2)
 
     //PAGE attrs
-    
+    #define PG_PTable_Maped	(1 << 0)
+    #define PG_Kernel_Init	(1 << 1)
+    #define PG_Referenced	(1 << 2)
+    #define PG_Dirty	(1 << 3)
+    #define PG_Active	(1 << 4)
+    #define PG_Up_To_Date	(1 << 5)
+    #define PG_Device	(1 << 6)
+    #define PG_Kernel	(1 << 7)
+    #define PG_K_Share_To_U	(1 << 8)
+    #define PG_Slab		(1 << 9)
+
+    //global cr3
+    extern uint64_t* global_cr3;
+
+    //functions
     void init_pmm();
+    struct Page* alloc_pages(int zone_sel,int number,uint64_t flags);
+
 #endif
