@@ -1,7 +1,6 @@
 #include <console.h>
 #include <tstdio.h>
 #include <debug.h>
-#include <tstdio.h>
 #include <trap.h>
 #include <gdt.h>
 #include <pmm.h>
@@ -21,8 +20,9 @@ void kern_main(){
     init_gdt();
     init_alltrap();
     init_pmm();
-    TestAllocPages();
-    print_cur_status();
+    intr_init();
+    //TestAllocPages();
+    //print_cur_status();
     while(1);
 }
 
@@ -59,7 +59,7 @@ static void TestPrintFrame(){
 }
 
 static void TestAllocPages(){
-    struct Page *pp = alloc_pages(ZONE_NORMAL,64,PG_PTable_Maped | PG_Active | PG_Kernel);
+    struct Page *pp = pmm_manager.alloc_pages(ZONE_NORMAL,60,PG_PTable_Maped | PG_Active | PG_Kernel);
     if(pp == NULL) {
         printk("Not Exist\n");
         return;

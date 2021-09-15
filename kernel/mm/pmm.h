@@ -1,6 +1,12 @@
 #ifndef __PMM_H_
 #define __PMM_H_
     #include <defs.h>
+    #include <mm_manager.h>
+
+    //config
+    #define DEFAULT_PMM
+
+    struct PMM_Manager pmm_manager;
 
     struct E820{
         uint64_t addr;
@@ -102,8 +108,5 @@
     //global cr3
     extern uint64_t* global_cr3;
 
-    //functions
     void init_pmm();
-    struct Page* alloc_pages(int zone_sel,int number,uint64_t flags);
-
 #endif

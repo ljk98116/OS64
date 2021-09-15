@@ -1,7 +1,7 @@
 # directory
 DIRECTORY = tools $(patsubst %,kernel/%,$(KDIRECTORY))
 
-KDIRECTORY = init trap console libs debug mm
+KDIRECTORY = init trap console libs debug mm driver
 
 KERNEL_DIRECTORY = $(patsubst %,kernel/%,$(KDIRECTORY))
 

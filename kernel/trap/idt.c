@@ -2,6 +2,7 @@
 #include <tstdio.h>
 #include <trap.h>
 
+extern void(*intr[24])();
 extern uint64_t IDT_Table[];
 extern void idt_flush();
 
@@ -66,6 +67,9 @@ void init_idt(){
         set_idt_gate(i,(uint64_t)unhandled_int,0x8E,0x00);
     }
     sys_vec_init();
+    for(int i=32;i<56;i++){
+        set_intr_gate(i,(uint64_t)intr[i-32],2);
+    }
     idt_flush();
     printk("IDT64 has sccesfully initialized\n");
 }

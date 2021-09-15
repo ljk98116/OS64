@@ -18,4 +18,12 @@
         return ret;
     }
 
+    static inline void sti(){
+        asm volatile("sti");
+    }
+
+    static inline void cli(){
+        asm volatile("cli");
+    }
+    
 #endif
