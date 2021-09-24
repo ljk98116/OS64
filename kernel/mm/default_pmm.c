@@ -1,6 +1,8 @@
 #include <pmm.h>
 #include <tstdio.h>
 
+struct PMM_Manager pmm_manager;
+
 //global cr3 pointer
 uint64_t* global_cr3 = 0;
 

@@ -316,161 +316,11 @@ Label_Get_Mem_OK:
 	mov	bp,	GetMemStructOKMessage
 	int	10h	
 
-;=======	get SVGA information
-
-	mov	ax,	1301h
-	mov	bx,	000Fh
-	mov	dx,	0800h		;row 8
-	mov	cx,	23
-	push	ax
-	mov	ax,	ds
-	mov	es,	ax
-	pop	ax
-	mov	bp,	StartGetSVGAVBEInfoMessage
-	int	10h
-
-	mov	ax,	0x00
-	mov	es,	ax
-	mov	di,	0x8000
-	mov	ax,	4F00h
-
-	int	10h
-
-	cmp	ax,	004Fh
-
-	jz	.KO
-	
-;=======	Fail
-
-	mov	ax,	1301h
-	mov	bx,	008Ch
-	mov	dx,	0900h		;row 9
-	mov	cx,	23
-	push	ax
-	mov	ax,	ds
-	mov	es,	ax
-	pop	ax
-	mov	bp,	GetSVGAVBEInfoErrMessage
-	int	10h
-
-	jmp	$
-
-.KO:
-
-	mov	ax,	1301h
-	mov	bx,	000Fh
-	mov	dx,	0A00h		;row 10
-	mov	cx,	29
-	push	ax
-	mov	ax,	ds
-	mov	es,	ax
-	pop	ax
-	mov	bp,	GetSVGAVBEInfoOKMessage
-	int	10h
-
-;=======	Get SVGA Mode Info
-
-	mov	ax,	1301h
-	mov	bx,	000Fh
-	mov	dx,	0C00h		;row 12
-	mov	cx,	24
-	push	ax
-	mov	ax,	ds
-	mov	es,	ax
-	pop	ax
-	mov	bp,	StartGetSVGAModeInfoMessage
-	int	10h
-
-
-	mov	ax,	0x00
-	mov	es,	ax
-	mov	si,	0x800e
-
-	mov	esi,	dword	[es:si]
-	mov	edi,	0x8200
-
-Label_SVGA_Mode_Info_Get:
-
-	mov	cx,	word	[es:esi]
-
-;=======	display SVGA mode information
-
-	push	ax
-	
-	mov	ax,	00h
-	mov	al,	ch
-	call	Label_DispAL
-
-	mov	ax,	00h
-	mov	al,	cl	
-	call	Label_DispAL
-	
-	pop	ax
-
-;=======
-	
-	cmp	cx,	0FFFFh
-	jz	Label_SVGA_Mode_Info_Finish
-
-	mov	ax,	4F01h
-	int	10h
-
-	cmp	ax,	004Fh
-
-	jnz	Label_SVGA_Mode_Info_FAIL	
-
-	inc	dword		[SVGAModeCounter]
-	add	esi,	2
-	add	edi,	0x100
-
-	jmp	Label_SVGA_Mode_Info_Get
-		
-Label_SVGA_Mode_Info_FAIL:
-
-	mov	ax,	1301h
-	mov	bx,	008Ch
-	mov	dx,	0D00h		;row 13
-	mov	cx,	24
-	push	ax
-	mov	ax,	ds
-	mov	es,	ax
-	pop	ax
-	mov	bp,	GetSVGAModeInfoErrMessage
-	int	10h
-
-Label_SET_SVGA_Mode_VESA_VBE_FAIL:
-
-	jmp	$
-
-Label_SVGA_Mode_Info_Finish:
-
-	mov	ax,	1301h
-	mov	bx,	000Fh
-	mov	dx,	0E00h		;row 14
-	mov	cx,	30
-	push	ax
-	mov	ax,	ds
-	mov	es,	ax
-	pop	ax
-	mov	bp,	GetSVGAModeInfoOKMessage
-	int	10h
-
-;=======	set the SVGA mode(VESA VBE)
-
-	mov	ax,	4F02h
-	mov	bx,	4180h	;========================mode : 0x180 or 0x143
-	int 	10h
-
-	cmp	ax,	004Fh
-	jnz	Label_SET_SVGA_Mode_VESA_VBE_FAIL
-
 ;=======	init IDT GDT goto protect mode 
 
 	cli			;======close interrupt
 
 	lgdt	[GdtPtr]
-
-;	lidt	[IDT_POINTER]
 
 	mov	eax,	cr0
 	or	eax,	1
@@ -543,11 +393,6 @@ GO_TO_TMP_Protect:
 	mov	dword	[0x92058],	0xe0c00083
 	mov	dword	[0x9205c],	0x000000	
 
-	mov	dword	[0x92060],	0xe0e00083
-	mov	dword	[0x92064],	0x000000
-
-	mov	dword	[0x92068],	0xe1000083
-	mov	dword	[0x9206c],	0x000000
 
 ;=======	load GDTR
 	

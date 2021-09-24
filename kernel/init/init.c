@@ -11,6 +11,8 @@ struct Global_Mem_Desc mm_struct = {{0},0};
 static void TestPrintFrame();
 static void TestAllocPages();
 
+extern struct PMM_Manager pmm_manager;
+
 void kern_main(){
     TestPrintFrame();
     console_init();
