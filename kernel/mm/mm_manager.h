@@ -6,6 +6,7 @@
         char* pmm_manager_name;
         void(*mm_init)();
         struct Page* (*alloc_pages)(int zone_sel,int number,uint64_t flags);
+        void (*free_pages)(struct Page *page,int number);
     };
 
 #endif

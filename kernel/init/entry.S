@@ -91,8 +91,7 @@ __PDE:
 	.quad	0xe0a00083
 	.quad	0xe0c00083
 	.quad	0xe0e00083
-	.quad	0xe1000083
-	.fill	498,8,0
+	.fill	499,8,0
 
 //=======	GDT_Table
 

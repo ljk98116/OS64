@@ -13,7 +13,7 @@
 */
 
 //VGA buffer begins at 0xB8000
-static uint16_t* vga_base = (uint16_t*)(0xB8000);
+static uint16_t* vga_base = (uint16_t*)(0xffff8000000B8000);
 
 //screen cursor loc
 static uint8_t cursor_x = 0;

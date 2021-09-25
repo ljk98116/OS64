@@ -397,6 +397,7 @@ GO_TO_TMP_Protect:
 ;=======	load GDTR
 	
 	lgdt	[GdtPtr64]
+	;lidt	[IDT_POINTER]
 	mov	ax,	0x10
 	mov	ds,	ax
 	mov	es,	ax

@@ -15,7 +15,7 @@ $(TARGET_DIRECTORY):$(DIRECTORY)
 
 # compile options
 CC = gcc
-CFLAGS = -nostdinc -fno-stack-protector -mcmodel=large -fno-builtin -m64 -c $(INCLUDE) -Os
+CFLAGS = -nostdinc -fno-stack-protector -mcmodel=large -fno-builtin -m64 -c $(INCLUDE) 
 
 LD = ld
 LDFLAGS = -b elf64-x86-64
@@ -55,9 +55,10 @@ $(KERN_SOBJ):%.o:%.S
 	@echo ****compiling kernel GAS source code****
 	as --64 -o $@ $<
 
-$(SYSTEM): $(TARGET_DIRECTORY) $(KERN_COBJ) $(KERN_SOBJ)
+$(SYSTEM): $(TARGET_DIRECTORY) $(KERN_SOBJ) $(KERN_COBJ)
 	$(LD) $(LDFLAGS) -T tools/kernel.lds -o $@ $(KERN_SOBJ) $(KERN_COBJ) 
 	$(OBJCOPY) -I elf64-x86-64 -S -R ".eh_frame" -R ".comment" -O binary $@ $(KERNEL)
+	$(OBJDUMP) -D $@ > bin/system.asm
 
 OBJ = $(shell find $(KERNEL_DIRECTORY) -name "*.o")
 
@@ -77,6 +78,11 @@ bochs : $(THOMAS_IMG)
 	
 .PHONY:all
 all:$(THOMAS_IMG)
+
+QEMU = qemu-system-x86_64
+.PHONY:qemu
+qemu:$(THOMAS_IMG)
+	$(QEMU) -fda $< -boot a
 
 .PHONY:clean
 clean:

@@ -14,17 +14,17 @@ static void TestAllocPages();
 extern struct PMM_Manager pmm_manager;
 
 void kern_main(){
-    TestPrintFrame();
+    //TestPrintFrame();
     console_init();
-    console_clear();
-    printk("hello os kernel %d\n",1);
-    printk_color(BLACK,BLUE,"hello os kernel %d\n",2);
     init_gdt();
     init_alltrap();
-    init_pmm();
+    printk("hello os kernel %d\n",1);
+    printk_color(BLACK,BLUE,"hello os kernel %d\n",2);
     intr_init();
-    //TestAllocPages();
-    //print_cur_status();
+    //int i = 1 / 0;
+    print_cur_status();
+    init_pmm();
+    TestAllocPages();
     while(1);
 }
 
@@ -61,18 +61,12 @@ static void TestPrintFrame(){
 }
 
 static void TestAllocPages(){
-    struct Page *pp = pmm_manager.alloc_pages(ZONE_NORMAL,60,PG_PTable_Maped | PG_Active | PG_Kernel);
-    if(pp == NULL) {
-        printk("Not Exist\n");
-        return;
-    }
-    for(int i=0;i<64;i+=1){
-        printk_color(BLACK,INDIGO,"page%d\tattr:%#018lx\taddr:%#018lx\t",
-        i,(pp+i)->page_attr,(pp+i)->phy_addr);
-        i+=1;
-        printk_color(BLACK,INDIGO,"page%d\tattr:%#018lx\taddr:%#018lx\n",
-        i,(pp+i)->page_attr,(pp+i)->phy_addr);
-    }
     printk("mem bitsmap:%#018lx\n",*(mm_struct.bitsmap));
     printk("mem bitsmap:%#018lx\n",*(mm_struct.bitsmap+1));
+    struct Page *pp = pmm_manager.alloc_pages(ZONE_NORMAL,63,PG_PTable_Maped | PG_Kernel2);
+    printk("mem bitsmap:%#018lx\n",*(mm_struct.bitsmap));
+    printk("mem bitsmap:%#018lx\n",*(mm_struct.bitsmap+1));
+    pmm_manager.free_pages(pp,63);
+    printk("mem bitsmap:%#018lx\n",*(mm_struct.bitsmap));
+    printk("mem bitsmap:%#018lx\n",*(mm_struct.bitsmap+1));    
 }

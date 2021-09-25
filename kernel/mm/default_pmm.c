@@ -27,12 +27,17 @@ static inline uint64_t* GetCR3(){
     return tmp;
 }
 
-static inline void TLB_flush(){
-    uint64_t *tmp;
-    asm volatile("movq %%cr3,%0\n"
-                 "movq %0,%%cr3\n"
-                :"=r"(tmp)::"memory");    
-}
+#define TLB_flush(cr3)     \
+do                      \
+{                       \                    \
+    asm volatile(           \
+        "movq %0,%%cr3\n\t" \
+        :                   \
+        :"r"(cr3)        \
+        :"memory"           \
+    );                      \
+} while (0)             \
+
 
 static void probe_memory(){
     uint64_t TotalMem = 0;
@@ -63,6 +68,7 @@ static void probe_memory(){
         if(mm_struct.e820[i].type != 1) continue;
         start = PAGE_2M_ALIGN(mm_struct.e820[i].addr);
         end = ((mm_struct.e820[i].addr + mm_struct.e820[i].len) >> PAGE_2M_SHIFT) << PAGE_2M_SHIFT;
+        printk("start:%#018lx,len:%#018lx,end:%#018lx\n",start,mm_struct.e820[i].len,end);
         if(end <= start) continue;
         TotalMem += (end-start) >> PAGE_2M_SHIFT;
     }
@@ -148,26 +154,30 @@ static void print_gmd(){
     );    
 }
 
+static uint64_t set_page_attr(struct Page *page,uint64_t flags){
+    if(page == NULL){
+        printk("page is NULL\n");
+        return 0;
+    }
+    page->page_attr = flags;
+    return 1;
+}
+
+static uint64_t get_page_attr(struct Page *page){
+    if(page == NULL){
+        printk("page is NULL\n");
+        return 0;
+    }
+    return page->page_attr;
+}
+
 static unsigned long pgitem_init(struct Page *page,unsigned long flags){
-    if(!page->page_attr){
-        *(mm_struct.bitsmap + (page->phy_addr >> PAGE_2M_SHIFT >> 6)) |= 1UL << (page->phy_addr >> PAGE_2M_SHIFT) % 64;
-        page->page_attr = flags;
-        page->page_ref++;
-        page->zone_struct->page_use_num++;
-        page->zone_struct->page_free_num--;
-        page->zone_struct->total_page_ref++;
-    }
-    else if((page->page_attr & PG_Referenced) || (page->page_attr & PG_K_Share_To_U) || 
-    (flags & PG_Referenced) || (flags & PG_K_Share_To_U)){
-        page->page_attr |= flags;
+    page->page_attr |= flags;
+    if(!page->page_ref || (page->page_attr & PG_Shared)){
         page->page_ref++;
         page->zone_struct->total_page_ref++;
     }
-    else{
-        *(mm_struct.bitsmap + (page->phy_addr >> PAGE_2M_SHIFT >> 6)) |= 1UL << (page->phy_addr >> PAGE_2M_SHIFT) % 64;
-        page->page_attr |= flags;
-    }
-    return 0;
+    return 1;
 }
 
 static void init_gmd(){
@@ -175,13 +185,14 @@ static void init_gmd(){
     init_mem_bitsmap();
     init_page();
     init_zone();
-    for(int i=0;i<mm_struct.e820_len;i++){
+    for(int i=0;i<=mm_struct.e820_len;i++){
         uint64_t start,end;
         struct Zone *z;
         struct Page *p;
         if(mm_struct.e820[i].type != 1) continue;
         start = PAGE_2M_ALIGN(mm_struct.e820[i].addr);
         end = ((mm_struct.e820[i].addr + mm_struct.e820[i].len) >> PAGE_2M_SHIFT) << PAGE_2M_SHIFT;
+        printk("start:%#018lx,len:%#018lx,end:%#018lx\n",start,mm_struct.e820[i].len,end);
         if(end <= start) continue;
         zone_init(&z,start,end);
         p = z->page_struct;
@@ -193,6 +204,7 @@ static void init_gmd(){
     mm_struct.pages_struct->page_attr = 0;
     mm_struct.pages_struct->page_ref = 0;
     mm_struct.pages_struct->page_age = 0;
+    set_page_attr(mm_struct.pages_struct,PG_PTable_Maped | PG_Kernel_Init | PG_Kernel);
     //get zone total size
     mm_struct.zones_size = ((mm_struct.zones_len * sizeof(struct Zone) + sizeof(long) -1) & (~(sizeof(long) - 1)));
     //print current gmd struct
@@ -200,15 +212,20 @@ static void init_gmd(){
     //INDEX for ZONES
     ZONE_DMA_INDEX = 0;
     ZONE_NORMAL_INDEX = 0;
+    ZONE_UNMAPPED_INDEX = 0;
+    printk("Zone_len:%d\n",mm_struct.zones_len);
     for(int i=0;i<mm_struct.zones_len;i++){
         struct Zone *z = mm_struct.zones_struct + i;
         printk_color(BLACK,ORANGE,"zone_start_addr:%#018lx,zone_end_addr:%#018lx,pages_group:%#018lx,pages_len:%#018lx\n",
         z->zone_start_addr,z->zone_end_addr,z->page_struct,z->page_num
         );
         //0x100000000~ is unmapped
-        if(z->zone_start_addr == 0x100000000)
+        if(z->zone_start_addr >= 0x100000000 && !ZONE_UNMAPPED_INDEX)
             ZONE_UNMAPPED_INDEX = i;
     }
+    printk_color(BLACK,ORANGE,"ZONE_DMA_INDEX:%d,ZONE_NORMAL_INDEX:%d,ZONE_UNMAPED_INDEX:%d\n",
+    ZONE_DMA_INDEX,ZONE_NORMAL_INDEX,ZONE_UNMAPPED_INDEX);
+
     //use a blank to seperate mm_struct
     mm_struct.end_of_gmd = (uint64_t)((uint64_t)mm_struct.zones_struct + mm_struct.zones_size + sizeof(long)*32) & (~(sizeof(long) -1));
     //print kernel info
@@ -218,24 +235,31 @@ static void init_gmd(){
     uint64_t pages_total = V2P(mm_struct.end_of_gmd) >> PAGE_2M_SHIFT;
     //printk("end_of_gmd:%#018lx,pages_total:%#018lx\n",V2P(mm_struct.end_of_gmd),pages_total);
     for(uint64_t i=0;i<= pages_total;i++){
-        pgitem_init(mm_struct.pages_struct + i,PG_PTable_Maped | PG_Kernel_Init | PG_Active | PG_Kernel);
+        struct Page *tmp = mm_struct.pages_struct + i;
+        pgitem_init(tmp,PG_PTable_Maped | PG_Kernel_Init | PG_Kernel | PG_Kernel2);
+        *(mm_struct.bitsmap + (tmp->phy_addr >> PAGE_2M_SHIFT >> 6)) |= 1UL << (tmp->phy_addr >> PAGE_2M_SHIFT) % 64;
+        tmp->zone_struct->page_use_num++;
+        tmp->zone_struct->page_free_num--;
     }
+
     //cr3
     global_cr3 = GetCR3();
     printk_color(BLACK,INDIGO,"Global CR3:%#018lx\n",global_cr3);
     printk_color(BLACK,INDIGO,"*Global CR3:%#018lx\n",*(uint64_t*)P2V((uint64_t)global_cr3) & (~0xff));
     printk_color(BLACK,INDIGO,"**Global CR3:%#018lx\n",*(uint64_t*)P2V(*(uint64_t*)P2V((uint64_t)global_cr3) & (~0xff)) & (~0xff));
-    
     for(int i=0;i<10;i++){
         *(uint64_t*)P2V((uint64_t)global_cr3 + i) = 0UL;
     }
-    TLB_flush();
+    //TLB_flush(global_cr3);
 }
 
 struct Page* alloc_pages(int zone_sel,int number,uint64_t flags){
     int start_idx = 0;
     int end_idx = 0;
-
+    if(number >= 64 || number <= 0){
+        printk("alloc pages error\n");
+        return NULL;
+    }
     switch(zone_sel){
         case ZONE_DMA:
             start_idx = 0;
@@ -268,16 +292,19 @@ struct Page* alloc_pages(int zone_sel,int number,uint64_t flags){
 
         //bitsmap 64 bits align
         uint64_t tmp = 64 - page_start_idx % 64;
-        for(uint64_t j=page_start_idx;j<=page_end_idx;j += j % 64 ? tmp:64){
+        for(uint64_t j=page_start_idx;j<page_end_idx;j += j % 64 ? tmp:64){
             uint64_t *p = mm_struct.bitsmap + (j >> 6);
             uint64_t shift = j % 64;
             for(uint64_t k=shift ; k< 64-shift;k++){
                 uint64_t current64_bitmap = (*p >> k) | (*(p+1) << (64-k));
-                if(!(current64_bitmap & (number == 64 ? 0xffffffffffffffff :(1UL << number) -1))){
-                    uint64_t page = j+k-1;
+                if(!( (k? current64_bitmap : *p) & ((1UL << number) - 1) )){
+                    uint64_t page = j+k-shift;
                     for(uint64_t l=0;l<number;l++){
                         struct Page *x = mm_struct.pages_struct + page + l;
-                        pgitem_init(x,flags);
+                        *(mm_struct.bitsmap + (x->phy_addr >> PAGE_2M_SHIFT >> 6)) |= 1UL << (x->phy_addr >> PAGE_2M_SHIFT) % 64;
+                        z->page_use_num++;
+                        z->page_free_num--;
+                        x->page_attr = flags;
                     }
                     return (struct Page*)(mm_struct.pages_struct + page);
                 }
@@ -292,10 +319,26 @@ void init_pmm(){
     pmm_manager.mm_init();
 }
 
+void free_pages(struct Page *page,int number){
+    int i = 0;
+    if(page == NULL){
+        printk("free_page error:page is not valid\n");
+        return;
+    }
+    else if(number >= 64 || number <= 0){
+        printk("free_page error:number is not valid\n");
+        return;
+    }
+    for(i=0;i<number;i++,page++){
+        *(mm_struct.bitsmap + (page->phy_addr >> PAGE_2M_SHIFT >> 6)) &= ~(1UL << (page->phy_addr >> PAGE_2M_SHIFT) % 64);
+    }
+}
+
 #ifdef DEFAULT_PMM
     struct PMM_Manager pmm_manager = {
         .pmm_manager_name = "default_pmm_manager",
         .mm_init = init_gmd,
         .alloc_pages = alloc_pages,
+        .free_pages = free_pages
     };
 #endif
